@@ -555,6 +555,7 @@ AI 감성분석
 
 
 
+```text
 AI-Travel-Planner/
 │
 ├── README.md                # 프로젝트 소개
@@ -567,9 +568,10 @@ AI-Travel-Planner/
 │   ├── 06_화면설계.md
 │   ├── 07_개발일정.md
 │   └── 08_트러블슈팅.md
-├── backend/
-├── ai-server/
-├── frontend/
-├── docker/
+├── backend/                 # Spring Boot 백엔드
+├── ai-server/               # FastAPI AI 서버
+├── frontend/                # HTML/CSS/JS/Thymeleaf 화면
+├── docker/                  # Docker 관련 설정
 └── .github/
-    └── workflows/
+    └── workflows/           # GitHub Actions CI/CD 설정
+```
