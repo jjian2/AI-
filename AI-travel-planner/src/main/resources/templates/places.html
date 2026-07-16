@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 여행 플래너 - 방문 장소</title>
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/places.css">
+</head>
+<body>
+
+  <div class="app-layout">
+
+    <!-- 왼쪽 사이드바 (main.html과 동일 구조) -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <img src="/images/tiger.png" alt="AI 여행 플래너" class="sidebar-logo-img">
+        <span>AI 여행 플래너</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="/main" class="nav-item" data-target="home">
+          <span class="nav-icon">🏠</span> Home
+        </a>
+
+        <div class="nav-group">
+          <button type="button" class="nav-item nav-group-toggle" id="scheduleToggle">
+            <span class="nav-icon">🗓️</span> 여행 일정
+            <span class="nav-caret">▾</span>
+          </button>
+
+          <ul class="trip-sublist" id="tripList">
+            <li class="trip-empty" id="tripEmptyMsg">아직 생성된 여행이 없어요.</li>
+            <li class="trip-add" id="tripAddItem">+ 새 여행 만들기</li>
+          </ul>
+        </div>
+
+        <a href="/places" class="nav-item active" data-target="places">
+          <span class="nav-icon">📍</span> 방문 장소
+        </a>
+        <a href="#" class="nav-item" data-target="budget">
+          <span class="nav-icon">💰</span> 여행 가계부
+        </a>
+        <a href="#" class="nav-item" data-target="mypage">
+          <span class="nav-icon">👤</span> 마이페이지
+        </a>
+      </nav>
+
+      <button type="button" id="logoutBtn" class="logout-btn">로그아웃</button>
+    </aside>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content">
+
+      <div class="page-header">
+        <h1>📍 방문 장소</h1>
+        <p>지도에서 핀을 확인하거나, 아래 목록에서 자세한 정보를 볼 수 있어요.</p>
+      </div>
+
+
+		<!-- 지도 -->
+		<section class="card places-map-card">
+		  <h3>🗺️ 지도로 보기</h3>
+		
+		  <div id="placesMap"></div>
+		
+		  <p class="map-note">
+		    ※ 저장한 여행 장소와 추천 장소를 지도에서 확인할 수 있습니다.
+		  </p>
+
+        <p class="map-note">※ 실제 서비스에서는 이 영역이 Google Maps로 교체될 예정입니다. 지금은 위치를 흉내 낸 목업이에요.</p>
+      </section>
+
+      <!-- 리스트로 보기 -->
+      <section class="places-list-section">
+        <h3>📋 목록으로 보기</h3>
+        <div class="places-grid" id="placesGrid">
+          <!-- 카드는 JS에서 placesData 기준으로 자동 생성됨 -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+<script src="/js/places.js"></script>
+
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJWJ1SPehUNz5zHsDZK5iU3hUNgQOUhQg&callback=initPlacesMap"
+  async
+  defer>
+</script>
+</body>
+</html>
