@@ -13,19 +13,7 @@ body {
   background: #eef0f5;
 }
 
-.left-panel h1 {
-  font-size: 48px;         /* 38px → 48px */
-  font-weight: 800;
-  line-height: 1.25;
-  margin-bottom: 20px;
-  color: #1b3f9e;   /* 로그인 버튼과 동일한 남색 */
-}
-
-.left-panel p {
-  font-size: 17px; 
-  color: #1b3f9e;   /* 제목과 동일한 남색으로 통일 */
-}
-
+/* ===== 로그인 카드 ===== */
 .login-wrapper {
   width: 100%;
   display: flex;
@@ -42,14 +30,13 @@ body {
   border-radius: 24px;
   overflow: hidden;
   box-shadow: 0 20px 50px rgba(20, 30, 70, 0.12);
-
-  /* 지도 이미지를 카드 배경으로 */
-  background-image: url("/images/background.png");
+  background-image: url("images/background.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
-/* 왼쪽 영역: 배경색 완전히 제거, 지도만 보이게 */
+
+/* 왼쪽 영역 (지도 배경이 비치도록 투명) */
 .left-panel {
   flex: 0 0 44%;
   background: transparent;
@@ -60,27 +47,28 @@ body {
   padding: 56px 44px;
 }
 
-/* 오른쪽 영역: 배경색 완전히 제거, 지도만 보이게 */
+.left-panel h1 {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 20px;
+  color: #1b3f9e;
+}
+
+.left-panel p {
+  font-size: 17px;
+  color: #1b3f9e;
+}
+
+/* 오른쪽 영역 (로그인 폼) */
 .right-panel {
   flex: 1;
   position: relative;
-  background: transparent;
-  padding: 300px 48px 48px 48px;
+  padding: 205px 200px 200px 200px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
-
-/* 오른쪽 흰색 영역 */
-.right-panel {
-  flex: 1;
-  position: relative;
-  padding: 205px 200px 200px 200px;   /* 여기 값을 바꾸는 거예요 */
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
 
 .character {
   position: absolute;
@@ -90,16 +78,16 @@ body {
   width: 800px;
   object-fit: contain;
   z-index: 5;
-  pointer-events: none;   /* 이 줄 추가 — 이미지가 클릭/입력을 막지 않도록 */
+  pointer-events: none;
 }
 
 .form-area {
   width: 100%;
-  max-width: 360px;         /* 300px → 360px */
+  max-width: 360px;
 }
 
 .form-area h2 {
-  font-size: 24px;          /* 20px → 24px */
+  font-size: 24px;
   font-weight: 700;
   color: #1a1a1a;
   margin-bottom: 20px;
@@ -144,6 +132,7 @@ body {
   cursor: pointer;
   transition: background 0.15s ease;
 }
+
 .form-area button:hover {
   background: #16337f;
 }
@@ -163,6 +152,7 @@ body {
 .signup-text a:hover {
   text-decoration: underline;
 }
+
 /* ===== 회원가입 모달 ===== */
 .modal-overlay {
   display: none;
@@ -284,6 +274,7 @@ body {
 .modal-footer-text a:hover {
   text-decoration: underline;
 }
+
 /* 아이디 입력 + 중복확인 버튼 */
 .input-with-button {
   display: flex;
@@ -338,7 +329,8 @@ body {
 .field-msg.success {
   color: #16a34a;
 }
-/* 반응형: 좁은 화면에서는 절대위치 해제하고 위아래로 쌓기 */
+
+/* ===== 반응형 ===== */
 @media (max-width: 720px) {
   .login-card {
     flex-direction: column;
@@ -354,12 +346,11 @@ body {
   .right-panel {
     flex: 1;
     position: relative;
-    padding: 205px 64px 64px 64px;   /* 좌우는 원래 값으로 복구 */
+    padding: 205px 64px 64px 64px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
   }
-
 
   .character {
     position: static;
@@ -370,6 +361,6 @@ body {
   .form-area {
     width: 100%;
     max-width: 360px;
-    margin-left: 60px;   /* 여기 숫자만 조절해서 오른쪽으로 이동 */
+    margin-left: 60px;
   }
 }
