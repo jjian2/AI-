@@ -91,6 +91,14 @@
             <option value="food">맛집 탐방</option>
             <option value="culture">문화/역사</option>
           </select>
+          <div>
+            <select id="transportation">
+              <option value="" disabled selected>이동 수단 선택</option>
+              <option value="도보">도보</option>
+              <option value="대중교통">대중교통</option>
+              <option value="렌트카">렌트카</option>
+            </select>
+          </div>
           <button type="submit" id="generateBtn">AI 일정 생성</button>
         </form>
       </section>
@@ -203,6 +211,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/ko.js"></script>
+<script src="/js/common.js"></script>
 <script src="/js/main.js"></script>
 <script
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJWJ1SPehUNz5zHsDZK5iU3hUNgQOUhQg&callback=initMap"
