@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 여행 플래너 - 마이페이지</title>
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="mypage.css">
+</head>
+<body>
+
+  <div class="app-layout">
+
+    <!-- 왼쪽 사이드바 (main.html과 동일 구조) -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <img src="images/tiger.png" alt="AI 여행 플래너" class="sidebar-logo-img">
+        <span>AI 여행 플래너</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="main.html" class="nav-item" data-target="home">
+          <span class="nav-icon">🏠</span> Home
+        </a>
+
+        <div class="nav-group">
+          <button type="button" class="nav-item nav-group-toggle" id="scheduleToggle">
+            <span class="nav-icon">🗓️</span> 여행 일정
+            <span class="nav-caret">▾</span>
+          </button>
+
+          <ul class="trip-sublist" id="tripList">
+            <li class="trip-empty" id="tripEmptyMsg">아직 생성된 여행이 없어요.</li>
+            <li class="trip-add" id="tripAddItem">+ 새 여행 만들기</li>
+          </ul>
+        </div>
+
+        <a href="places.html" class="nav-item" data-target="places">
+          <span class="nav-icon">📍</span> 방문 장소
+        </a>
+        <a href="budget.html" class="nav-item" data-target="budget">
+          <span class="nav-icon">💰</span> 여행 가계부
+        </a>
+        <a href="mypage.html" class="nav-item active" data-target="mypage">
+          <span class="nav-icon">👤</span> 마이페이지
+        </a>
+      </nav>
+
+      <button type="button" id="logoutBtn" class="logout-btn">로그아웃</button>
+    </aside>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content">
+      
+      <section class="page-header">
+        <div class="page-overlay">
+          <h1>👤 마이페이지</h1>
+          <p>내 정보를 확인하고 수정할 수 있어요.</p>
+        </div>
+      </section>
+
+      <div class="mypage-grid">
+
+        <div class="mypage-card profile-card">
+          
+          <div class="profile-avatar-container" id="avatarContainer">
+            <img src="images/tiger.png" alt="프로필 사진" id="profileImg">
+            <div class="avatar-overlay">
+              <span class="camera-icon">📷</span>
+              <span>사진 변경</span>
+            </div>
+            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+          </div>
+          <form id="profileForm">
+            <label>이름
+              <input type="text" id="profileName" placeholder="이름">
+            </label>
+
+            <label>아이디
+              <input type="text" id="profileId" placeholder="아이디" disabled>
+            </label>
+
+            <label>이메일
+              <input type="email" id="profileEmail" placeholder="이메일">
+            </label>
+
+            <div class="button-group-right">
+              <button type="submit" class="primary-btn">정보 저장</button>
+            </div>
+            <p class="save-msg" id="profileSaveMsg"></p>
+          </form>
+        </div>
+
+        <div class="mypage-side">
+
+          <!-- 계정 통계 -->
+          <div class="mypage-card">
+            <h3>📊 계정 정보</h3>
+            <ul class="stat-list">
+              <li><span>가입일</span><span id="joinDate">-</span></li>
+              <li><span>만든 여행</span><span id="tripCount">0개</span></li>
+            </ul>
+          </div>
+
+          <!-- 비밀번호 변경 -->
+          <div class="mypage-card">
+            <h3>🔒 비밀번호 변경</h3>
+            <form id="passwordForm">
+              <input type="password" id="currentPw" placeholder="현재 비밀번호" autocomplete="current-password">
+              <input type="password" id="newPw" placeholder="새 비밀번호" autocomplete="new-password">
+              <input type="password" id="newPwConfirm" placeholder="새 비밀번호 확인" autocomplete="new-password">
+              <p class="field-msg error" id="newPwMismatchMsg"></p>
+              <div class="button-group-right">
+                <button type="submit" class="primary-btn">비밀번호 저장</button>
+              </div>
+              <p class="save-msg" id="passwordSaveMsg"></p>
+            </form>
+          </div>
+
+          <!-- 회원 탈퇴 -->
+          <div class="mypage-card danger-card">
+            <h3>⚠️ 회원 탈퇴</h3>
+            <p class="danger-desc">탈퇴하면 저장된 여행 목록과 계정 정보가 모두 삭제되며 복구할 수 없어요.</p>
+            <button type="button" id="withdrawBtn" class="danger-btn">회원 탈퇴</button>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+  
+<script src="common.js"></script>
+<script src="mypage.js"></script>
+</body>
+</html>
