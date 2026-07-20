@@ -1,18 +1,34 @@
 /* ===== 페이지 헤더 ===== */
 .page-header {
-  margin-bottom: 24px;
+  position: relative;
+  height: 200px;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 28px;
+  background-image: url("images/back.jpg");
+  background-size: cover;
+  background-position: center 65%;
 }
 
-.page-header h1 {
-  font-size: 22px;
+.page-overlay {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 40px;
+  background: linear-gradient(90deg, rgba(15, 23, 55, 0.72) 0%, rgba(15, 23, 55, 0.35) 65%, rgba(15, 23, 55, 0.1) 100%);
+}
+
+.page-overlay h1 {
+  color: #ffffff;
+  font-size: 26px;
   font-weight: 800;
-  color: #1a1a1a;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
-.page-header p {
-  font-size: 13.5px;
-  color: #6b6f7a;
+.page-overlay p {
+  color: #e4e7f5;
+  font-size: 14px;
 }
 
 /* ===== 지도 + 핀 카드 ===== */
@@ -60,12 +76,10 @@
   transform: translate(-50%, -100%) scale(1.18);
 }
 
-/* 핀 호버 시 뜨는 정보 카드 */
+/* 핀 호버 시 뜨는 정보 카드 (실제 위치는 JS가 계산해서 style로 지정) */
 .pin-tooltip {
-
   opacity: 0;
   visibility: hidden;
-  
   position: absolute;
   z-index: 10;
   width: 220px;
@@ -74,23 +88,17 @@
   border-radius: 12px;
   box-shadow: 0 12px 28px rgba(20, 30, 70, 0.18);
   overflow: hidden;
-  
-  /* 애니메이션 설정 */
   transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
-  
-  /* 핀 옆으로 위치 조정 (오프셋) */
-  margin-left: 10px; 
-  left: 100%; 
+  margin-left: 10px;
+  left: 100%;
   top: 0;
-  transform: translateX(-10px); /* 처음에 약간 왼쪽에서 시작 */
+  transform: translateX(-10px);
 }
 
-/* 핀에 호버했을 때 또는 active 상태일 때 */
-.map-pin:hover + .pin-tooltip,
 .pin-tooltip.show {
   opacity: 1;
   visibility: visible;
-  transform: translateX(0); /* 제자리로 이동 */
+  transform: translateX(0);
 }
 
 .pin-tooltip-photo {
@@ -193,49 +201,6 @@
 
 .place-card-body a:hover {
   text-decoration: underline;
-}
-/* ===== 방문 장소 Google Maps ===== */
-
-#placesMap {
-  width: 100%;
-  height: 430px;
-  min-height: 430px;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #eef1f7;
-}
-
-.map-note {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #8a93a6;
-}
-
-/* ===== 방문 장소 카드 이미지 ===== */
-
-.place-card-photo {
-  width: 100%;
-  height: 170px;
-  position: relative;
-  overflow: hidden;
-  background: #eef1fb;
-}
-
-.place-image {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-.place-image-fallback {
-  width: 100%;
-  height: 100%;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  font-size: 38px;
-  background: #eef1fb;
 }
 
 /* ===== 반응형 ===== */
