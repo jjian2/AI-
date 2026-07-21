@@ -1,68 +1,56 @@
 /*
- * 방문 장소 페이지
- * 현재는 임시 데이터를 사용하고,
- * 이후 Spring Boot 또는 DB 응답으로 교체할 예정
+ * places.js
+ * "방문 장소" 페이지 전용 로직 (실제 Google Maps + AI가 생성한 실제 일정 데이터 렌더링).
+ *
+ * 사이드바 여행 목록 렌더링 / 상단 메뉴 활성 표시 / 로그아웃은
+ * common.js가 모든 페이지 공통으로 처리하므로 이 파일에서는 다루지 않습니다.
+ *
+ * TODO: 지금은 localStorage의 "latestTrip"을 읽어서 그리지만,
+ * 실제 서비스에서는 백엔드가 방문 장소 목록을 내려주는 API로 교체 예정
+ * (예: GET /api/trips/{tripId}/places)
  */
-const savedTrip =
-    JSON.parse(localStorage.getItem("latestTrip"));
-/* ===== 방문 장소 데이터 ===== */
 
+const savedTrip = JSON.parse(localStorage.getItem("latestTrip") || "null");
+
+/* ===== 방문 장소 데이터 정리 (백엔드 응답 형태를 화면에서 쓰기 좋은 형태로 변환) ===== */
 const placesData = [];
 
-if (savedTrip && savedTrip.days) {
-
-    savedTrip.days.forEach(day => {
-
-        day.places.forEach(place => {
-
-			placesData.push({
-			  name: place.placeName || "여행 장소",
-			  icon: "📍",
-
-			  description:
-			    place.description ||
-			    place.category ||
-			    "AI가 추천한 여행 장소입니다.",
-
-			  latitude: place.latitude,
-			  longitude: place.longitude,
-			  address: place.address || "",
-			  time: place.time || "",
-			  estimatedCost: Number(place.estimatedCost || 0),
-
-			  photo: place.photoUrl || "",
-
-			  link:
-			    place.googleMapsUri ||
-			    place.placeUrl ||
-			    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-			      `${place.placeName || ""} ${place.address || ""}`
-			    )}`
-			});
-
-        });
-
+if (savedTrip && Array.isArray(savedTrip.days)) {
+  savedTrip.days.forEach((day) => {
+    (day.places || []).forEach((place) => {
+      placesData.push({
+        name: place.placeName || "여행 장소",
+        icon: "📍",
+        description: place.description || place.category || "AI가 추천한 여행 장소입니다.",
+        latitude: place.latitude,
+        longitude: place.longitude,
+        address: place.address || "",
+        time: place.time || "",
+        estimatedCost: Number(place.estimatedCost || 0),
+        photo: place.photoUrl || "",
+        link:
+          place.googleMapsUri ||
+          place.placeUrl ||
+          `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+            `${place.placeName || ""} ${place.address || ""}`
+          )}`
+      });
     });
-
+  });
 }
 
-/* ===== 장소 카드 목록 출력 ===== */
-
+/* ===== 리스트로 보기 (카드 그리드) ===== */
 const placesGrid = document.getElementById("placesGrid");
 
 function renderPlaceCards() {
-  if (!placesGrid) {
-    console.error("placesGrid 요소를 찾을 수 없습니다.");
-    return;
-  }
+  if (!placesGrid) return;
 
   placesGrid.innerHTML = "";
 
   if (placesData.length === 0) {
     placesGrid.innerHTML = `
       <p class="places-empty">
-        아직 생성된 여행 장소가 없습니다.
-        먼저 Home에서 AI 일정을 생성해주세요.
+        아직 생성된 여행 장소가 없어요. 먼저 Home에서 AI 일정을 생성해주세요.
       </p>
     `;
     return;
@@ -71,28 +59,18 @@ function renderPlaceCards() {
   placesData.forEach((place) => {
     const card = document.createElement("div");
     card.className = "place-card";
-
     card.innerHTML = `
       <div class="place-card-photo">
         <img class="place-image" alt="">
         <div class="place-image-fallback">📍</div>
       </div>
-
       <div class="place-card-body">
         <h4></h4>
-
         <p class="place-card-time"></p>
         <p class="place-card-description"></p>
         <p class="place-card-address"></p>
         <p class="place-card-cost"></p>
-
-        <a
-          class="place-card-link"
-          target="_blank"
-          rel="noopener"
-        >
-          🗺️ Google Maps에서 보기 →
-        </a>
+        <a class="place-card-link" target="_blank" rel="noopener">🗺️ Google Maps에서 보기 →</a>
       </div>
     `;
 
@@ -101,13 +79,10 @@ function renderPlaceCards() {
 
     if (place.photo) {
       image.src = place.photo;
-      image.alt = place.name || "여행 장소";
+      image.alt = place.name;
       image.style.display = "block";
       fallback.style.display = "none";
-
-      image.addEventListener("error", function () {
-        console.warn("장소 사진 불러오기 실패:", place.photo);
-
+      image.addEventListener("error", () => {
         image.style.display = "none";
         fallback.style.display = "flex";
       });
@@ -116,67 +91,47 @@ function renderPlaceCards() {
       fallback.style.display = "flex";
     }
 
-    card.querySelector("h4").textContent =
-      place.name || "여행 장소";
+    card.querySelector("h4").textContent = place.name;
 
-    const timeElement =
-      card.querySelector(".place-card-time");
-
+    const timeEl = card.querySelector(".place-card-time");
     if (place.time) {
-      timeElement.textContent = `🕒 ${place.time}`;
+      timeEl.textContent = `🕒 ${place.time}`;
     } else {
-      timeElement.remove();
+      timeEl.remove();
     }
 
-    card.querySelector(
-      ".place-card-description"
-    ).textContent =
-      place.description || "AI가 추천한 여행 장소입니다.";
+    card.querySelector(".place-card-description").textContent = place.description;
 
-    const addressElement =
-      card.querySelector(".place-card-address");
-
+    const addressEl = card.querySelector(".place-card-address");
     if (place.address) {
-      addressElement.textContent = `📍 ${place.address}`;
+      addressEl.textContent = `📍 ${place.address}`;
     } else {
-      addressElement.remove();
+      addressEl.remove();
     }
 
-    card.querySelector(
-      ".place-card-cost"
-    ).textContent =
-      `예상 비용: ${Number(
-        place.estimatedCost || 0
-      ).toLocaleString()}원`;
+    card.querySelector(".place-card-cost").textContent =
+      `예상 비용: ${place.estimatedCost.toLocaleString()}원`;
 
-    const linkElement =
-      card.querySelector(".place-card-link");
-
-    linkElement.href = place.link || "#";
+    card.querySelector(".place-card-link").href = place.link || "#";
 
     placesGrid.appendChild(card);
   });
 }
 
-/* ===== Google Maps ===== */
-
+/* ===== 지도로 보기 (Google Maps JS API) =====
+ * places.html에 <script src="https://maps.googleapis.com/maps/api/js?key=API_KEY&callback=initPlacesMap">
+ * 를 넣어두면 지도 스크립트 로드가 끝난 뒤 이 함수가 자동으로 호출됩니다.
+ */
 let googlePlacesMap = null;
 let googlePlacesMarkers = [];
 let currentPlacesInfoWindow = null;
 
 window.initPlacesMap = function () {
   const mapElement = document.getElementById("placesMap");
-
-  if (!mapElement) {
-    console.error("placesMap 요소를 찾을 수 없습니다.");
-    return;
-  }
+  if (!mapElement) return;
 
   googlePlacesMap = new google.maps.Map(mapElement, {
-    center: {
-      lat: 36.2,
-      lng: 127.8
-    },
+    center: { lat: 36.2, lng: 127.8 },   // 대한민국 중앙 정도, 마커 생기면 자동으로 재조정됨
     zoom: 7,
     mapTypeControl: true,
     streetViewControl: true,
@@ -184,89 +139,41 @@ window.initPlacesMap = function () {
   });
 
   renderPlacesMapMarkers();
-
-  console.log("방문 장소 Google Maps 초기화 성공");
 };
 
 function renderPlacesMapMarkers() {
-  if (!googlePlacesMap) {
-    console.error("Google Maps가 아직 초기화되지 않았습니다.");
-    return;
-  }
+  if (!googlePlacesMap) return;
 
   clearPlacesMapMarkers();
-
   const bounds = new google.maps.LatLngBounds();
 
   placesData.forEach((place, index) => {
-    const latitude = Number(place.latitude);
-    const longitude = Number(place.longitude);
+    const lat = Number(place.latitude);
+    const lng = Number(place.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;   // 좌표 없는 장소는 지도에서 제외
 
-    if (
-      !Number.isFinite(latitude) ||
-      !Number.isFinite(longitude)
-    ) {
-      console.warn("좌표가 올바르지 않은 장소:", place);
-      return;
-    }
-
-    const position = {
-      lat: latitude,
-      lng: longitude
-    };
+    const position = { lat, lng };
 
     const marker = new google.maps.Marker({
-      position: position,
+      position,
       map: googlePlacesMap,
       title: place.name,
-      label: {
-        text: String(index + 1),
-        color: "#ffffff",
-        fontSize: "12px",
-        fontWeight: "700"
-      }
+      label: { text: String(index + 1), color: "#ffffff", fontSize: "12px", fontWeight: "700" }
     });
 
     const infoWindow = new google.maps.InfoWindow({
       content: `
-        <div style="
-          min-width: 210px;
-          padding: 6px;
-          line-height: 1.6;
-          font-family: Arial, sans-serif;
-        ">
-          <strong style="font-size: 15px;">
-            📍 ${escapePlacesText(place.name)}
-          </strong>
-
-          <div style="
-            margin-top: 7px;
-            margin-bottom: 7px;
-          ">
-            ${escapePlacesText(place.description)}
-          </div>
-
-          <a
-            href="${place.link}"
-            target="_blank"
-            rel="noopener"
-          >
-            Google Maps에서 보기
-          </a>
+        <div style="min-width:210px; padding:6px; line-height:1.6; font-family:Arial, sans-serif;">
+          <strong style="font-size:15px;">📍 ${escapePlacesText(place.name)}</strong>
+          <div style="margin:7px 0;">${escapePlacesText(place.description)}</div>
+          <a href="${place.link}" target="_blank" rel="noopener">Google Maps에서 보기</a>
         </div>
       `
     });
 
-    marker.addListener("click", function () {
-      if (currentPlacesInfoWindow) {
-        currentPlacesInfoWindow.close();
-      }
-
-      infoWindow.open({
-        anchor: marker,
-        map: googlePlacesMap
-      });
-
+    marker.addListener("click", () => {
+      if (currentPlacesInfoWindow) currentPlacesInfoWindow.close();
+      infoWindow.open({ anchor: marker, map: googlePlacesMap });
       currentPlacesInfoWindow = infoWindow;
     });
 
@@ -279,26 +186,15 @@ function renderPlacesMapMarkers() {
     googlePlacesMap.setZoom(15);
   } else if (googlePlacesMarkers.length > 1) {
     googlePlacesMap.fitBounds(bounds);
-
-    google.maps.event.addListenerOnce(
-      googlePlacesMap,
-      "bounds_changed",
-      function () {
-        if (googlePlacesMap.getZoom() > 14) {
-          googlePlacesMap.setZoom(14);
-        }
-      }
-    );
+    google.maps.event.addListenerOnce(googlePlacesMap, "bounds_changed", () => {
+      if (googlePlacesMap.getZoom() > 14) googlePlacesMap.setZoom(14);
+    });
   }
 }
 
 function clearPlacesMapMarkers() {
-  googlePlacesMarkers.forEach((marker) => {
-    marker.setMap(null);
-  });
-
+  googlePlacesMarkers.forEach((marker) => marker.setMap(null));
   googlePlacesMarkers = [];
-
   if (currentPlacesInfoWindow) {
     currentPlacesInfoWindow.close();
     currentPlacesInfoWindow = null;
@@ -314,63 +210,5 @@ function escapePlacesText(value) {
     .replace(/'/g, "&#039;");
 }
 
-/* ===== 사이드바 ===== */
-
-const navItems = document.querySelectorAll(
-  ".nav-item:not(.nav-group-toggle)"
-);
-
-navItems.forEach((item) => {
-  item.addEventListener("click", function (event) {
-    const href = this.getAttribute("href");
-
-    if (!href || href === "#") {
-      event.preventDefault();
-
-      console.log(
-        "아직 준비되지 않은 메뉴입니다:",
-        this.dataset.target
-      );
-    }
-  });
-});
-
-const scheduleToggle =
-  document.getElementById("scheduleToggle");
-
-const navGroup =
-  scheduleToggle?.closest(".nav-group");
-
-if (scheduleToggle && navGroup) {
-  scheduleToggle.addEventListener("click", function () {
-    navGroup.classList.toggle("open");
-  });
-}
-
-const tripAddItem =
-  document.getElementById("tripAddItem");
-
-if (tripAddItem) {
-  tripAddItem.addEventListener("click", function () {
-    window.location.href = "/main";
-  });
-}
-
-/* ===== 로그아웃 ===== */
-
-const logoutBtn =
-  document.getElementById("logoutBtn");
-
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", function () {
-    sessionStorage.removeItem("accessToken");
-    window.location.href = "/";
-  });
-}
-
 /* ===== 페이지 시작 ===== */
-
-document.addEventListener("DOMContentLoaded", function () {
-  renderPlaceCards();
-});
-
+document.addEventListener("DOMContentLoaded", renderPlaceCards);
