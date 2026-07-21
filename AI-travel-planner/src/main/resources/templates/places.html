@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 여행 플래너 - 방문 장소</title>
-<link rel="stylesheet" href="/css/main.css">
-<link rel="stylesheet" href="/css/places.css">
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="places.css">
 </head>
 <body>
 
@@ -14,12 +14,12 @@
     <!-- 왼쪽 사이드바 (main.html과 동일 구조) -->
     <aside class="sidebar">
       <div class="sidebar-logo">
-        <img src="/images/tiger.png" alt="AI 여행 플래너" class="sidebar-logo-img">
+        <img src="images/tiger.png" alt="AI 여행 플래너" class="sidebar-logo-img">
         <span>AI 여행 플래너</span>
       </div>
 
       <nav class="sidebar-nav">
-        <a href="/main" class="nav-item" data-target="home">
+        <a href="main.html" class="nav-item" data-target="home">
           <span class="nav-icon">🏠</span> Home
         </a>
 
@@ -35,13 +35,13 @@
           </ul>
         </div>
 
-        <a href="/places" class="nav-item active" data-target="places">
+        <a href="places.html" class="nav-item" data-target="places">
           <span class="nav-icon">📍</span> 방문 장소
         </a>
-        <a href="/budget" class="nav-item" data-target="budget">
+        <a href="#" class="nav-item" data-target="budget">
           <span class="nav-icon">💰</span> 여행 가계부
         </a>
-        <a href="/mypage" class="nav-item" data-target="mypage">
+        <a href="mypage.html" class="nav-item" data-target="mypage">
           <span class="nav-icon">👤</span> 마이페이지
         </a>
       </nav>
@@ -51,33 +51,21 @@
 
     <!-- 메인 콘텐츠 -->
     <main class="main-content">
-      <section class="page-header">
-        <div class="page-overlay">
-          <h1>📍 방문 장소</h1>
-          <p>지도에서 핀을 확인하거나, 아래 목록에서 자세한 정보를 볼 수 있어요.</p>
-        </div>
-      </section>
 
+      <div class="page-header">
+        <h1>📍 방문 장소</h1>
+        <p>지도에서 핀을 확인하거나, 아래 목록에서 자세한 정보를 볼 수 있어요.</p>
+      </div>
 
-		<!-- 지도 -->
+      <!-- 지도로 보기 -->
       <section class="card places-map-card">
         <h3>🗺️ 지도로 보기</h3>
 
         <div class="places-map" id="placesMap">
-          <!-- 핀은 JS에서 placesData 기준으로 자동 생성됨 -->
-
-          <!-- 핀에 마우스를 올리면 여기에 정보 카드가 뜸 -->
-          <div class="pin-tooltip" id="pinTooltip">
-            <div class="pin-tooltip-photo" id="pinTooltipPhoto">🖼️</div>
-            <div class="pin-tooltip-body">
-              <h4 id="pinTooltipName"></h4>
-              <p id="pinTooltipDesc"></p>
-              <a href="#" id="pinTooltipLink" target="_blank" rel="noopener">⭐ 별점/리뷰 보기 →</a>
-            </div>
-          </div>
+          <!-- Google Maps가 여기에 렌더링됨 (places.js의 initPlacesMap) -->
         </div>
 
-        <p class="map-note">※ 실제 서비스에서는 이 영역이 Google Maps로 교체될 예정입니다. 지금은 위치를 흉내 낸 목업이에요.</p>
+        <p class="map-note">※ 아래 Google Maps API 스크립트에 실제 API 키를 넣어야 지도가 표시됩니다.</p>
       </section>
 
       <!-- 리스트로 보기 -->
@@ -91,12 +79,9 @@
     </main>
   </div>
 
-<script src="/js/common.js"></script>
-<script src="/js/places.js"></script>
-<script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJWJ1SPehUNz5zHsDZK5iU3hUNgQOUhQg&callback=initPlacesMap"
-  async
-  defer>
-</script>
+<script src="common.js"></script>
+<!-- TODO: YOUR_API_KEY를 실제 Google Maps API 키로 교체 -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initPlacesMap" defer></script>
+<script src="places.js"></script>
 </body>
 </html>
