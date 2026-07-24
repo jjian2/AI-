@@ -576,7 +576,7 @@ html, body {
 
 /* 지도 */
 .map-placeholder {
-  height: 150px;
+  height: 260px;
   border-radius: 10px;
   background: repeating-linear-gradient(
     45deg,
@@ -590,6 +590,76 @@ html, body {
   justify-content: center;
   color: #9aa0ab;
   font-size: 12.5px;
+  overflow: hidden;
+}
+
+/* 가계부 위젯 총합 표시 */
+.budget-quick-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background: #f7f8fa;
+  font-size: 13px;
+}
+
+.budget-quick-total span:first-child {
+  color: #6b6f7a;
+}
+
+.budget-quick-total span:last-child {
+  font-weight: 700;
+  color: #1b3f9e;
+}
+
+/* 홈 가계부 위젯 → 상세 가계부 페이지 링크 */
+.budget-detail-link {
+  display: block;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #1b3f9e;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.budget-detail-link:hover {
+  text-decoration: underline;
+}
+
+/* AI 일정 카드 - Day/장소 카드 (main.js renderItinerary가 그리는 구조) */
+.day-box {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #eceef2;
+}
+
+.day-box h4 {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1b3f9e;
+  margin-bottom: 8px;
+}
+
+.place-item {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border: 1px solid #eceef2;
+  border-radius: 10px;
+  background: #fafbfc;
+  font-size: 12.5px;
+  color: #3a3d45;
+  line-height: 1.6;
+}
+
+.place-item strong {
+  color: #1b3f9e;
+  margin-right: 6px;
+}
+
+.place-item small {
+  color: #9aa0ab;
 }
 
 /* 추천 여행지 */
