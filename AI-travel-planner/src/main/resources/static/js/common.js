@@ -29,12 +29,13 @@ function getTripById(id) {
   return getTrips().find((t) => String(t.id) === String(id));
 }
 
-/* 새 여행 추가 — main.js에서 AI 일정 생성이 끝나면 이 함수를 호출 */
-function addTrip(conditions, summaryText) {
+/* 새 여행 추가 — main.js에서 AI 일정 생성(실제 백엔드 응답)이 끝나면 이 함수를 호출
+ * result: 백엔드 /trip/generate 응답의 result 객체 (title, destination, period, people, days...) */
+function addTrip(conditions, result) {
   const trips = getTrips();
   const nextId = trips.reduce((max, t) => Math.max(max, Number(t.id) || 0), 0) + 1;
-  const name = `${conditions.destination} ${conditions.duration}`;
-  const trip = { id: nextId, name, conditions, summaryText };
+  const name = (result && result.title) || `${conditions.destination} ${conditions.period}`;
+  const trip = { id: nextId, name, conditions, result };
 
   trips.push(trip);
   saveTrips(trips);
@@ -210,7 +211,7 @@ function initLogout() {
     // TODO: 실제 로그아웃 API 연동 시 토큰 삭제 등 처리 추가
     sessionStorage.removeItem("accessToken");
     clearActiveTripId();
-    window.location.href = "index.html";
+    window.location.href = "/";   // Spring Boot가 "/"에서 로그인 페이지를 서빙
   });
 }
 
