@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 여행 플래너</title>
-<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="main.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
 </head>
 <body>
@@ -14,12 +14,12 @@
     <!-- 왼쪽 사이드바 -->
     <aside class="sidebar">
       <div class="sidebar-logo">
-        <img src="/images/tiger.png" alt="AI 여행 플래너" class="sidebar-logo-img">
+        <img src="images/tiger.png" alt="AI 여행 플래너" class="sidebar-logo-img">
         <span>AI 여행 플래너</span>
       </div>
 
       <nav class="sidebar-nav">
-        <a href="/main" class="nav-item active" data-target="home">
+        <a href="main.html" class="nav-item active" data-target="home">
           <span class="nav-icon">🏠</span> Home
         </a>
 
@@ -35,13 +35,13 @@
           </ul>
         </div>
 
-        <a href="/places" class="nav-item" data-target="places">
+        <a href="places.html" class="nav-item" data-target="places">
           <span class="nav-icon">📍</span> 방문 장소
         </a>
-        <a href="/budget" class="nav-item" data-target="budget">
+        <a href="budget.html" class="nav-item" data-target="budget">
           <span class="nav-icon">💰</span> 여행 가계부
         </a>
-        <a href="/mypage" class="nav-item" data-target="mypage">
+        <a href="mypage.html" class="nav-item" data-target="mypage">
           <span class="nav-icon">👤</span> 마이페이지
         </a>
       </nav>
@@ -84,13 +84,15 @@
             </select>
           </div>
           <input type="text" id="budget" placeholder="예산 (예: 50만원)">
-          <select id="travelStyle">
-            <option value="">여행 스타일</option>
-            <option value="relax">휴양</option>
-            <option value="activity">액티비티</option>
-            <option value="food">맛집 탐방</option>
-            <option value="culture">문화/역사</option>
-          </select>
+          <div>
+            <select id="travelStyle">
+              <option value="">여행 스타일</option>
+              <option value="relax">휴양</option>
+              <option value="activity">액티비티</option>
+              <option value="food">맛집 탐방</option>
+              <option value="culture">문화/역사</option>
+            </select>
+          </div>
           <div>
             <select id="transportation">
               <option value="" disabled selected>이동 수단 선택</option>
@@ -110,89 +112,41 @@
           <p class="placeholder-text">여행 조건을 입력하면 일정이 생성됩니다.</p>
         </div>
 
-		<div class="card" id="checklistCard">
-		  <h3>✅ 체크리스트</h3>
-		
-		  <ul class="checklist">
-		    <li>
-		      <label>
-		        <input
-		          type="checkbox"
-		          class="checklist-item"
-		          value="신분증"
-		        >
-		        신분증
-		      </label>
-		    </li>
-		
-		    <li>
-		      <label>
-		        <input
-		          type="checkbox"
-		          class="checklist-item"
-		          value="충전기"
-		        >
-		        충전기
-		      </label>
-		    </li>
-		
-		    <li>
-		      <label>
-		        <input
-		          type="checkbox"
-		          class="checklist-item"
-		          value="옷"
-		        >
-		        옷
-		      </label>
-		    </li>
-		
-		    <li>
-		      <label>
-		        <input
-		          type="checkbox"
-		          class="checklist-item"
-		          value="세면도구"
-		        >
-		        세면도구
-		      </label>
-		    </li>
-		  </ul>
-		</div>
+        <div class="card" id="checklistCard">
+          <h3>✅ 체크리스트</h3>
+          <ul class="checklist">
+            <li><label><input type="checkbox" class="checklist-item" value="id"> 신분증</label></li>
+            <li><label><input type="checkbox" class="checklist-item" value="charger"> 충전기</label></li>
+            <li><label><input type="checkbox" class="checklist-item" value="clothes"> 옷</label></li>
+            <li><label><input type="checkbox" class="checklist-item" value="toiletries"> 세면도구</label></li>
+          </ul>
+        </div>
       </section>
 
       <!-- 가계부 / 지도 -->
       <section class="dashboard-grid two-col">
-		<div class="card" id="budgetCard">
-		  <div class="card-header">
-		    <h3>💰 여행 가계부</h3>
-		
-		    <button
-		      type="button"
-		      id="addExpenseBtn"
-		      class="add-btn"
-		      aria-label="지출 추가"
-		    >
-		      +
-		    </button>
-		  </div>
-		
-		  <ul class="budget-list" id="budgetList">
-		    <li class="budget-empty" id="budgetEmptyMsg">
-		      아직 등록된 지출이 없어요. 위의 + 버튼을 눌러 추가해보세요.
-		    </li>
-		  </ul>
-		
-		  <div class="budget-total-box">
-		    <span>총 지출</span>
-		    <strong id="budgetTotal">0원</strong>
-		  </div>
-		</div>
+        <div class="card" id="budgetCard">
+          <div class="card-header">
+            <h3>💰 여행 가계부</h3>
+            <button type="button" id="addExpenseBtn" class="add-btn" aria-label="지출 추가">+</button>
+          </div>
 
-		<div class="card" id="mapCard">
-		  <h3>📍 지도</h3>
-		  <div id="map"></div>
-		</div>
+          <div class="budget-quick-total">
+            <span>총 지출</span>
+            <span id="budgetTotal">0원</span>
+          </div>
+
+          <ul class="budget-list" id="budgetList">
+            <li class="budget-empty" id="budgetEmptyMsg">아직 등록된 지출이 없어요. 위의 + 버튼을 눌러 추가해보세요.</li>
+          </ul>
+
+          <a href="budget.html" class="budget-detail-link">카테고리별 분석 · OCR 영수증 등록은 여행 가계부 페이지에서 →</a>
+        </div>
+
+        <div class="card" id="mapCard">
+          <h3>📍 지도</h3>
+          <div id="map" class="map-placeholder"></div>
+        </div>
       </section>
 
       <!-- 추천 여행지 -->
@@ -211,12 +165,9 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/ko.js"></script>
-<script src="/js/common.js"></script>
-<script src="/js/main.js"></script>
-<script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJWJ1SPehUNz5zHsDZK5iU3hUNgQOUhQg&callback=initMap"
-  async
-  defer>
-</script>
+<script src="common.js"></script>
+<script src="main.js"></script>
+<!-- TODO: YOUR_GOOGLE_MAPS_API_KEY 자리에 실제 Google Maps API 키를 넣어주세요 -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async defer></script>
 </body>
 </html>
