@@ -1,215 +1,47 @@
-let map;
-let markers = [];
+/* ============================================================
+ * main.js — Home 화면(main.html) 전용 로직
+ * 사이드바 여행 목록 렌더링/저장/삭제/로그아웃은 common.js가 담당합니다.
+ *
+ * 이 파일이 담당하는 것:
+ *  - 여행 조건 폼 → 실제 백엔드(/trip/generate) 호출로 AI 일정 생성
+ *  - 생성된 일정을 Day/장소 카드로 렌더링
+ *  - Google Maps에 장소 마커 + 경로 표시
+ *  - 체크리스트 저장
+ *  - 홈 화면의 간단 가계부 위젯 (카테고리 없는 라벨+금액 — 상세 관리는 budget.html)
+ * ============================================================ */
 
-/* ===== 사이드바 네비게이션 ===== */
-const navItems = document.querySelectorAll(".nav-item:not(.nav-group-toggle)");
-
-navItems.forEach((item) => {
-  item.addEventListener("click", function (e) {
-    const href = this.getAttribute("href");
-
-    if (!href || href === "#") {
-      e.preventDefault();
-      navItems.forEach((el) => el.classList.remove("active"));
-      this.classList.add("active");
-      deactivateAllTrips();
-      console.log("아직 준비되지 않은 메뉴입니다:", this.dataset.target);
-    }
-  });
-});
-
-/* ===== 여행 일정 메뉴 펼침 ===== */
-const scheduleToggle = document.getElementById("scheduleToggle");
-const navGroup = scheduleToggle.closest(".nav-group");
-
-scheduleToggle.addEventListener("click", function () {
-  navGroup.classList.toggle("open");
-});
-
-/* ===== 여행 목록 관리 ===== */
-const tripList = document.getElementById("tripList");
-const tripEmptyMsg = document.getElementById("tripEmptyMsg");
-const tripAddItem = document.getElementById("tripAddItem");
-const homeNavItem = document.querySelector('.nav-item[data-target="home"]');
-
-const TRIPS_STORAGE_KEY = "ai_travel_planner_trips";
-
-let trips = [];
-let tripIdCounter = 0;
-
-function deactivateAllTrips() {
-  tripList.querySelectorAll(".trip-item").forEach((el) => el.classList.remove("active"));
-}
-
-function saveTripsToStorage() {
-  const dataToSave = trips.map(({ id, name, conditions, result }) => ({
-    id,
-    name,
-    conditions,
-    result
-  }));
-
-  localStorage.setItem(TRIPS_STORAGE_KEY, JSON.stringify(dataToSave));
-}
-
-function loadTripsFromStorage() {
-  const saved = JSON.parse(localStorage.getItem(TRIPS_STORAGE_KEY) || "[]");
-
-  saved.forEach((trip) => {
-    trips.push(trip);
-    renderTripItem(trip);
-    if (trip.id > tripIdCounter) tripIdCounter = trip.id;
-  });
-
-  updateTripEmptyState();
-}
-
-tripAddItem.addEventListener("click", function () {
-  navItems.forEach((el) => el.classList.remove("active"));
-  homeNavItem.classList.add("active");
-  deactivateAllTrips();
-
-  document.getElementById("destination").focus();
-  document.querySelector(".search-panel").scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
-});
-
-function renderTripItem(trip) {
-  const li = document.createElement("li");
-  li.className = "trip-item";
-  li.dataset.tripId = trip.id;
-  li.title = trip.name;
-
-  li.innerHTML = `
-    <span class="trip-item-name"></span>
-    <button type="button" class="trip-delete-btn" aria-label="여행 삭제">✕</button>
-  `;
-
-  li.querySelector(".trip-item-name").textContent = trip.name;
-
-  li.addEventListener("click", function () {
-    navItems.forEach((el) => el.classList.remove("active"));
-    deactivateAllTrips();
-    li.classList.add("active");
-    loadTripIntoHome(trip.id);
-  });
-
-  li.querySelector(".trip-delete-btn").addEventListener("click", function (e) {
-    e.stopPropagation();
-    deleteTrip(trip.id, li);
-  });
-
-  tripList.insertBefore(li, tripAddItem);
-  return li;
-}
-
-function addTripToSidebar(conditions, result) {
-  tripIdCounter += 1;
-
-  const tripId = tripIdCounter;
-  const tripName = result.title || `${conditions.destination} ${conditions.period}`;
-
-  const trip = {
-    id: tripId,
-    name: tripName,
-    conditions,
-    result
-  };
-
-  trips.push(trip);
-  const li = renderTripItem(trip);
-
-  navItems.forEach((el) => el.classList.remove("active"));
-  deactivateAllTrips();
-  li.classList.add("active");
-
-  navGroup.classList.add("open");
-  updateTripEmptyState();
-  saveTripsToStorage();
-}
-
-function deleteTrip(tripId, li) {
-  const wasActive = li.classList.contains("active");
-
-  trips = trips.filter((t) => t.id !== tripId);
-  li.remove();
-
-  updateTripEmptyState();
-  saveTripsToStorage();
-
-  if (wasActive) {
-    resetHomeToBlank();
-  }
-}
-
-function resetHomeToBlank() {
-  tripForm.reset();
-
-  if (durationPicker) {
-    durationPicker.clear();
-  }
-
-  itineraryCard.innerHTML = `
-    <h3>🕒 AI 추천 일정</h3>
-    <p class="placeholder-text">
-      여행 조건을 입력하면 일정이 생성됩니다.
-    </p>
-  `;
-
-  navItems.forEach((el) => el.classList.remove("active"));
-  homeNavItem.classList.add("active");
-}
-
-function updateTripEmptyState() {
-  tripEmptyMsg.style.display = trips.length > 0 ? "none" : "block";
-}
-
-function loadTripIntoHome(tripId) {
-  const trip = trips.find((t) => t.id === tripId);
-
-  if (!trip) {
-    return;
-  }
-
-  document.getElementById("destination").value =
-    trip.conditions.destination || "";
-
-  document.getElementById("duration").value =
-    trip.conditions.period || "";
-
-  document.getElementById("companionCount").value =
-    trip.conditions.companionCount || "";
-
-  document.getElementById("companionType").value =
-    trip.conditions.companionType || "";
-
-  document.getElementById("budget").value =
-    trip.conditions.budgetText || "";
-
-  document.getElementById("travelStyle").value =
-    trip.conditions.travelStyleValue || "";
-
-  renderItinerary(trip.result);
-  showPlacesOnMap(trip.result);
-
-  // 방문 장소 페이지에서도 선택한 여행을 사용
-  localStorage.setItem(
-    "latestTrip",
-    JSON.stringify(trip.result)
-  );
-}
-
-/* ===== 여행 조건 입력 폼 ===== */
 const tripForm = document.getElementById("tripForm");
 const itineraryCard = document.getElementById("itineraryCard");
 const generateBtn = document.getElementById("generateBtn");
+const destinationInput = document.getElementById("destination");
 
+/* ===== common.js 사이드바에서 호출하는 훅(hook) 함수들 ===== */
+
+window.onTripSelected = function (tripId) {
+  loadTripIntoHome(tripId);
+};
+
+window.onNewTripRequested = function () {
+  resetHomeToBlank();
+  destinationInput.focus();
+  document.querySelector(".search-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+};
+
+window.onActiveTripCleared = function () {
+  resetHomeToBlank();
+};
+
+/* 페이지 로드 시 사이드바에서 선택된 여행이 있으면 자동으로 불러오기 */
+document.addEventListener("DOMContentLoaded", () => {
+  const activeId = getActiveTripId();
+  if (activeId) loadTripIntoHome(activeId);
+});
+
+/* ===== 여행 조건 입력 폼 → 실제 AI 일정 생성 API 호출 ===== */
 tripForm.addEventListener("submit", async function (e) {
   e.preventDefault();
 
-  const destination = document.getElementById("destination").value.trim();
+  const destination = destinationInput.value.trim();
   const period = document.getElementById("duration").value.trim();
   const companionCount = document.getElementById("companionCount").value.trim();
   const companionType = document.getElementById("companionType").value;
@@ -229,17 +61,19 @@ tripForm.addEventListener("submit", async function (e) {
       ? `${companionCount}명`
       : companionType || "1명";
 
-  const budgetNumber = parseInt(budgetText.replace(/[^0-9]/g, "")) || 500000;
+  const budgetNumber = parseInt(budgetText.replace(/[^0-9]/g, ""), 10) || 500000;
 
+  // 백엔드로 보낼 요청 payload
   const requestData = {
-    destination: destination,
-    period: period,
+    destination,
+    period,
     people: peopleText,
     budget: budgetNumber,
     style: travelStyleText,
     transportType: "대중교통"
   };
 
+  // 사이드바/폼 복원용으로 저장해둘 조건 (payload랑 다르게 원본 입력값도 같이 보관)
   const conditions = {
     destination,
     period,
@@ -263,9 +97,7 @@ tripForm.addEventListener("submit", async function (e) {
   try {
     const response = await fetch("/trip/generate", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(requestData)
     });
 
@@ -273,32 +105,21 @@ tripForm.addEventListener("submit", async function (e) {
       throw new Error("서버 응답 오류");
     }
 
-	const data = await response.json();
+    const data = await response.json();
+    console.log("AI 응답:", data);
 
-	console.log("AI 응답:", data);
+    if (!data.success || !data.result) {
+      throw new Error("AI 일정 생성에 실패했습니다.");
+    }
 
-	if (!response.ok || !data.success || !data.result) {
-	  throw new Error("AI 일정 생성에 실패했습니다.");
-	}
+    const result = data.result;
 
-	const result = data.result;
+    // 방문 장소 페이지에 넘길 최신 일정 저장
+    localStorage.setItem("latestTrip", JSON.stringify(result));
 
-	/* 방문 장소 페이지에 넘길 최신 일정 저장 */
-	localStorage.setItem(
-	  "latestTrip",
-	  JSON.stringify(result)
-	);
-
-	console.log(
-	  "저장된 최신 일정:",
-	  JSON.parse(localStorage.getItem("latestTrip"))
-	);
-
-	renderItinerary(result);
-	showPlacesOnMap(result);
-	addTripToSidebar(conditions, result);
-	
-
+    renderItinerary(result);
+    showPlacesOnMap(result);
+    addTrip(conditions, result);   // common.js: localStorage 저장 + 사이드바 갱신 + 활성 표시
   } catch (error) {
     console.error(error);
     alert("AI 일정 생성에 실패했습니다. FastAPI 서버와 Spring Boot 서버가 모두 켜져 있는지 확인해주세요.");
@@ -313,6 +134,7 @@ tripForm.addEventListener("submit", async function (e) {
   generateBtn.textContent = "AI 일정 생성";
 });
 
+/* ===== 일정 카드 렌더링 (Day별 장소 카드) ===== */
 function renderItinerary(result) {
   if (!result || !result.days) {
     itineraryCard.innerHTML = `
@@ -323,32 +145,31 @@ function renderItinerary(result) {
   }
 
   itineraryCard.innerHTML = `
-    <h3>🕒 ${result.title || "AI 추천 일정"}</h3>
+    <h3>🕒 ${escapeText(result.title || "AI 추천 일정")}</h3>
     <p class="placeholder-text">
-      ${result.destination || ""} · ${result.period || ""} · ${result.people || ""}
+      ${escapeText(result.destination || "")} · ${escapeText(result.period || "")} · ${escapeText(result.people || "")}
     </p>
   `;
 
   result.days.forEach((day) => {
     itineraryCard.innerHTML += `
       <div class="day-box">
-        <h4>Day ${day.day}</h4>
-        <p>${day.summary || ""}</p>
-
+        <h4>Day ${escapeText(day.day)}</h4>
+        <p>${escapeText(day.summary || "")}</p>
         ${
           day.places
             ? day.places
                 .map(
                   (place) => `
                     <div class="place-item">
-                      <strong>${place.time || ""}</strong>
-                      <span>${place.placeName || ""}</span>
+                      <strong>${escapeText(place.time || "")}</strong>
+                      <span>${escapeText(place.placeName || "")}</span>
                       <br>
-                      <small>${place.category || ""}</small>
+                      <small>${escapeText(place.category || "")}</small>
                       <br>
-                      <small>${place.address || ""}</small>
-                      <p>${place.description || ""}</p>
-                      <p>예상 비용: ${(place.estimatedCost || 0).toLocaleString()}원</p>
+                      <small>${escapeText(place.address || "")}</small>
+                      <p>${escapeText(place.description || "")}</p>
+                      <p>예상 비용: ${Number(place.estimatedCost || 0).toLocaleString()}원</p>
                     </div>
                   `
                 )
@@ -360,9 +181,42 @@ function renderItinerary(result) {
   });
 }
 
-/* ===== 여행 기간 캘린더 ===== */
-/* ===== 여행 기간 캘린더 ===== */
+/* 사이드바에서 특정 여행 클릭 시 Home 화면에 그 여행 내용 다시 불러오기 */
+function loadTripIntoHome(tripId) {
+  const trip = getTripById(tripId);   // common.js
+  if (!trip) return;
 
+  document.getElementById("destination").value = trip.conditions.destination || "";
+  document.getElementById("duration").value = trip.conditions.period || "";
+  document.getElementById("companionCount").value = trip.conditions.companionCount || "";
+  document.getElementById("companionType").value = trip.conditions.companionType || "";
+  document.getElementById("budget").value = trip.conditions.budgetText || "";
+  document.getElementById("travelStyle").value = trip.conditions.travelStyleValue || "";
+
+  renderItinerary(trip.result);
+  showPlacesOnMap(trip.result);
+
+  // 방문 장소 페이지에서도 선택한 여행을 사용
+  localStorage.setItem("latestTrip", JSON.stringify(trip.result));
+
+  // TODO: 실제 서비스에서는 여기서 서버에 해당 여행의 최신 상세 데이터를 다시 요청해도 됨
+}
+
+/* Home 화면(입력 폼 + 일정 카드 + 지도)을 빈 상태로 초기화 */
+function resetHomeToBlank() {
+  tripForm.reset();
+  if (durationPicker) durationPicker.clear();
+
+  itineraryCard.innerHTML = `
+    <h3>🕒 AI 추천 일정</h3>
+    <p class="placeholder-text">여행 조건을 입력하면 일정이 생성됩니다.</p>
+  `;
+
+  clearMapMarkers();
+}
+
+/* ===== 여행 기간 캘린더 (flatpickr) =====
+ * 실제 저장은 "Y-m-d ~ Y-m-d" 형태로 하고, 입력창에는 한국어로 보기 좋게 표시 */
 const durationInput = document.getElementById("duration");
 const calendarBtn = document.getElementById("calendarBtn");
 
@@ -383,29 +237,19 @@ if (!durationInput) {
     minDate: "today",
     locale: "ko",
     showMonths: 2,
-
-    // 입력창을 클릭해도 달력이 열리도록 설정
     clickOpens: true,
     allowInput: false,
 
     onChange: function (selectedDates) {
       if (selectedDates.length === 2) {
-        const startDate = selectedDates[0];
-        const endDate = selectedDates[1];
-
-        durationInput.value =
-          `${formatKoreanDate(startDate)} ~ ${formatKoreanDate(endDate)}`;
+        const [startDate, endDate] = selectedDates;
+        durationInput.value = `${formatKoreanDate(startDate)} ~ ${formatKoreanDate(endDate)}`;
       }
     }
   });
 
-  durationInput.addEventListener("click", function () {
-    durationPicker.open();
-  });
-
-  durationInput.addEventListener("focus", function () {
-    durationPicker.open();
-  });
+  durationInput.addEventListener("click", () => durationPicker.open());
+  durationInput.addEventListener("focus", () => durationPicker.open());
 }
 
 if (calendarBtn) {
@@ -421,46 +265,31 @@ if (calendarBtn) {
   });
 }
 
-/* ===== 여행 가계부 ===== */
+/* ===== 홈 화면 간단 가계부 위젯 =====
+ * 카테고리별 상세 관리(AI 예산 분석, OCR 등)는 budget.html에서 하고,
+ * 여기는 "빠르게 하나 추가"용 간단 위젯이라 저장 키를 budget.html과 분리했습니다. */
+const HOME_BUDGET_STORAGE_KEY = "ai_travel_planner_home_budget_items";
 
 const addExpenseBtn = document.getElementById("addExpenseBtn");
 const budgetList = document.getElementById("budgetList");
 const budgetEmptyMsg = document.getElementById("budgetEmptyMsg");
 const budgetTotal = document.getElementById("budgetTotal");
 
-const BUDGET_STORAGE_KEY = "ai_travel_planner_budget_items";
-
 let budgetItems = [];
 let budgetItemIdCounter = 0;
 
-/* localStorage 저장 */
 function saveBudgetItems() {
-  localStorage.setItem(
-    BUDGET_STORAGE_KEY,
-    JSON.stringify(budgetItems)
-  );
+  localStorage.setItem(HOME_BUDGET_STORAGE_KEY, JSON.stringify(budgetItems));
 }
 
-/* localStorage 불러오기 */
 function loadBudgetItems() {
   try {
-    const savedItems = JSON.parse(
-      localStorage.getItem(BUDGET_STORAGE_KEY) || "[]"
-    );
-
-    if (!Array.isArray(savedItems)) {
-      budgetItems = [];
-      return;
-    }
-
-    budgetItems = savedItems;
+    const savedItems = JSON.parse(localStorage.getItem(HOME_BUDGET_STORAGE_KEY) || "[]");
+    budgetItems = Array.isArray(savedItems) ? savedItems : [];
 
     budgetItems.forEach((item) => {
       renderBudgetItem(item);
-
-      if (Number(item.id) > budgetItemIdCounter) {
-        budgetItemIdCounter = Number(item.id);
-      }
+      if (Number(item.id) > budgetItemIdCounter) budgetItemIdCounter = Number(item.id);
     });
   } catch (error) {
     console.error("가계부 불러오기 실패:", error);
@@ -470,118 +299,56 @@ function loadBudgetItems() {
   updateBudgetState();
 }
 
-/* 비어 있는지 확인하고 총합 갱신 */
 function updateBudgetState() {
-  if (budgetEmptyMsg) {
-    budgetEmptyMsg.style.display =
-      budgetItems.length === 0 ? "block" : "none";
-  }
-
+  if (budgetEmptyMsg) budgetEmptyMsg.style.display = budgetItems.length === 0 ? "block" : "none";
   updateBudgetTotal();
 }
 
-/* 총 지출 계산 */
 function updateBudgetTotal() {
-  const total = budgetItems.reduce((sum, item) => {
-    return sum + Number(item.amount || 0);
-  }, 0);
-
-  if (budgetTotal) {
-    budgetTotal.textContent = `${total.toLocaleString()}원`;
-  }
+  const total = budgetItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  if (budgetTotal) budgetTotal.textContent = `${total.toLocaleString()}원`;
 }
 
-/* 이미 열린 입력 줄 제거 */
 function removeEditRowIfExists() {
-  const existingRow = budgetList.querySelector(
-    ".budget-edit-row"
-  );
-
-  if (existingRow) {
-    existingRow.remove();
-  }
+  const existingRow = budgetList.querySelector(".budget-edit-row");
+  if (existingRow) existingRow.remove();
 }
 
-/* + 버튼 클릭 */
 addExpenseBtn.addEventListener("click", function () {
   removeEditRowIfExists();
 
   const editRow = document.createElement("li");
   editRow.className = "budget-edit-row";
-
   editRow.innerHTML = `
-    <input
-      type="text"
-      class="budget-edit-label"
-      placeholder="항목 (예: 점심)"
-    >
-
-    <input
-      type="text"
-      class="budget-edit-amount"
-      placeholder="금액"
-      inputmode="numeric"
-    >
-
-    <button
-      type="button"
-      class="budget-confirm-btn"
-      aria-label="저장"
-    >
-      ✓
-    </button>
-
-    <button
-      type="button"
-      class="budget-cancel-btn"
-      aria-label="취소"
-    >
-      ✕
-    </button>
+    <input type="text" class="budget-edit-label" placeholder="항목 (예: 점심)">
+    <input type="text" class="budget-edit-amount" placeholder="금액" inputmode="numeric">
+    <button type="button" class="budget-confirm-btn" aria-label="저장">✓</button>
+    <button type="button" class="budget-cancel-btn" aria-label="취소">✕</button>
   `;
 
   budgetList.appendChild(editRow);
 
-  const labelInput = editRow.querySelector(
-    ".budget-edit-label"
-  );
-
-  const amountInput = editRow.querySelector(
-    ".budget-edit-amount"
-  );
-
-  const confirmBtn = editRow.querySelector(
-    ".budget-confirm-btn"
-  );
-
-  const cancelBtn = editRow.querySelector(
-    ".budget-cancel-btn"
-  );
+  const labelInput = editRow.querySelector(".budget-edit-label");
+  const amountInput = editRow.querySelector(".budget-edit-amount");
+  const confirmBtn = editRow.querySelector(".budget-confirm-btn");
+  const cancelBtn = editRow.querySelector(".budget-cancel-btn");
 
   labelInput.focus();
 
-  /* 금액에 숫자만 입력되도록 처리 */
   amountInput.addEventListener("input", function () {
     const numberOnly = this.value.replace(/[^0-9]/g, "");
-
-    this.value = numberOnly
-      ? Number(numberOnly).toLocaleString()
-      : "";
+    this.value = numberOnly ? Number(numberOnly).toLocaleString() : "";
   });
 
   function confirmExpense() {
     const label = labelInput.value.trim();
-
-    const amount = Number(
-      amountInput.value.replace(/[^0-9]/g, "")
-    );
+    const amount = Number(amountInput.value.replace(/[^0-9]/g, ""));
 
     if (!label) {
       alert("지출 항목을 입력해주세요.");
       labelInput.focus();
       return;
     }
-
     if (!Number.isFinite(amount) || amount <= 0) {
       alert("금액을 숫자로 입력해주세요.");
       amountInput.focus();
@@ -590,128 +357,80 @@ addExpenseBtn.addEventListener("click", function () {
 
     addBudgetItem(label, amount);
     editRow.remove();
+    // TODO: 실제 서비스에서는 여기서 서버에 지출 내역 저장 API 호출
   }
 
   confirmBtn.addEventListener("click", confirmExpense);
-
-  cancelBtn.addEventListener("click", function () {
-    editRow.remove();
-  });
+  cancelBtn.addEventListener("click", () => editRow.remove());
 
   editRow.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
       event.preventDefault();
       confirmExpense();
     }
-
-    if (event.key === "Escape") {
-      editRow.remove();
-    }
+    if (event.key === "Escape") editRow.remove();
   });
 });
 
-/* 새 지출 등록 */
 function addBudgetItem(label, amount) {
   budgetItemIdCounter += 1;
-
-  const budgetItem = {
-    id: budgetItemIdCounter,
-    label: label,
-    amount: Number(amount)
-  };
+  const budgetItem = { id: budgetItemIdCounter, label, amount: Number(amount) };
 
   budgetItems.push(budgetItem);
-
   renderBudgetItem(budgetItem);
   saveBudgetItems();
   updateBudgetState();
 }
 
-/* 화면에 지출 항목 출력 */
 function renderBudgetItem(item) {
   const listItem = document.createElement("li");
-
   listItem.className = "budget-item";
   listItem.dataset.budgetId = item.id;
 
   listItem.innerHTML = `
     <span class="budget-item-label"></span>
-
     <span class="budget-item-amount"></span>
-
-    <button
-      type="button"
-      class="budget-delete-btn"
-      aria-label="삭제"
-    >
-      ✕
-    </button>
+    <button type="button" class="budget-delete-btn" aria-label="삭제">✕</button>
   `;
 
-  listItem.querySelector(
-    ".budget-item-label"
-  ).textContent = item.label;
+  listItem.querySelector(".budget-item-label").textContent = item.label;
+  listItem.querySelector(".budget-item-amount").textContent = `${Number(item.amount).toLocaleString()}원`;
 
-  listItem.querySelector(
-    ".budget-item-amount"
-  ).textContent =
-    `${Number(item.amount).toLocaleString()}원`;
-
-  listItem.querySelector(
-    ".budget-delete-btn"
-  ).addEventListener("click", function () {
+  listItem.querySelector(".budget-delete-btn").addEventListener("click", function () {
     deleteBudgetItem(item.id);
   });
 
   budgetList.appendChild(listItem);
 }
 
-/* 지출 삭제 */
 function deleteBudgetItem(itemId) {
-  budgetItems = budgetItems.filter(
-    (item) => Number(item.id) !== Number(itemId)
-  );
+  budgetItems = budgetItems.filter((item) => Number(item.id) !== Number(itemId));
 
-  const targetItem = budgetList.querySelector(
-    `[data-budget-id="${itemId}"]`
-  );
-
-  if (targetItem) {
-    targetItem.remove();
-  }
+  const targetItem = budgetList.querySelector(`[data-budget-id="${itemId}"]`);
+  if (targetItem) targetItem.remove();
 
   saveBudgetItems();
   updateBudgetState();
+  // TODO: 실제 서비스에서는 여기서 서버에 삭제 API 호출
 }
 
-/* 페이지가 열릴 때 저장된 가계부 불러오기 */
-loadBudgetItems();
-
+loadBudgetItems();   // 페이지가 열릴 때 저장된 간단 가계부 불러오기
 
 /* ===== 체크리스트 저장 ===== */
-
 const CHECKLIST_STORAGE_KEY = "ai_travel_planner_checklist";
 const checklistItems = document.querySelectorAll(".checklist-item");
 
 function saveChecklist() {
   const checklistState = {};
-
   checklistItems.forEach((checkbox) => {
     checklistState[checkbox.value] = checkbox.checked;
   });
-
-  localStorage.setItem(
-    CHECKLIST_STORAGE_KEY,
-    JSON.stringify(checklistState)
-  );
+  localStorage.setItem(CHECKLIST_STORAGE_KEY, JSON.stringify(checklistState));
 }
 
 function loadChecklist() {
   try {
-    const savedState = JSON.parse(
-      localStorage.getItem(CHECKLIST_STORAGE_KEY) || "{}"
-    );
-
+    const savedState = JSON.parse(localStorage.getItem(CHECKLIST_STORAGE_KEY) || "{}");
     checklistItems.forEach((checkbox) => {
       checkbox.checked = Boolean(savedState[checkbox.value]);
     });
@@ -720,16 +439,11 @@ function loadChecklist() {
   }
 }
 
-checklistItems.forEach((checkbox) => {
-  checkbox.addEventListener("change", saveChecklist);
-});
-
+checklistItems.forEach((checkbox) => checkbox.addEventListener("change", saveChecklist));
 loadChecklist();
 
-
-/* ===== 추천 여행지 클릭 ===== */
+/* ===== 추천 여행지 클릭 시 여행지 입력창에 자동 반영 ===== */
 const recommendItems = document.querySelectorAll(".recommend-item");
-const destinationInput = document.getElementById("destination");
 
 recommendItems.forEach((item) => {
   item.addEventListener("click", function () {
@@ -738,13 +452,11 @@ recommendItems.forEach((item) => {
   });
 });
 
-/* ===== 로그아웃 ===== */
-document.getElementById("logoutBtn").addEventListener("click", function () {
-  sessionStorage.removeItem("accessToken");
-  window.location.href = "/";
-});
-
-/* ===== Google Maps ===== */
+/* ============================================================
+ * Google Maps 연동
+ * main.html에 <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async defer></script>
+ * 와 <div id="map">가 있어야 동작합니다.
+ * ============================================================ */
 let googleMap;
 let googleMarkers = [];
 let routePolyline = null;
@@ -752,17 +464,13 @@ let activeInfoWindow = null;
 
 window.initMap = function () {
   const mapElement = document.getElementById("map");
-
   if (!mapElement) {
     console.error("지도 요소 #map을 찾을 수 없습니다.");
     return;
   }
 
   googleMap = new google.maps.Map(mapElement, {
-    center: {
-      lat: 34.6937,
-      lng: 135.5023
-    },
+    center: { lat: 34.6937, lng: 135.5023 },   // 초기 중심: 오사카 (여행지 생기면 자동으로 이동)
     zoom: 12
   });
 
@@ -770,10 +478,7 @@ window.initMap = function () {
 };
 
 function clearMapMarkers() {
-  googleMarkers.forEach((marker) => {
-    marker.setMap(null);
-  });
-
+  googleMarkers.forEach((marker) => marker.setMap(null));
   googleMarkers = [];
 
   if (routePolyline) {
@@ -787,35 +492,11 @@ function clearMapMarkers() {
   }
 }
 
-function addMapMarker(latitude, longitude, title) {
-  if (!googleMap) {
-    console.error("Google Map이 초기화되지 않았습니다.");
-    return;
-  }
-
-  const lat = Number(latitude);
-  const lng = Number(longitude);
-
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    console.warn("올바르지 않은 좌표:", latitude, longitude);
-    return;
-  }
-
-  const marker = new google.maps.Marker({
-    position: { lat, lng },
-    map: googleMap,
-    title: title || ""
-  });
-
-  googleMarkers.push(marker);
-}
-
 function showPlacesOnMap(result) {
   if (!googleMap) {
     console.error("Google Map이 아직 초기화되지 않았습니다.");
     return;
   }
-
   if (!result || !Array.isArray(result.days)) {
     console.error("지도에 표시할 일정 데이터가 없습니다.");
     return;
@@ -825,13 +506,10 @@ function showPlacesOnMap(result) {
 
   const bounds = new google.maps.LatLngBounds();
   const routePath = [];
-
   let markerNumber = 1;
 
   result.days.forEach((day) => {
-    if (!Array.isArray(day.places)) {
-      return;
-    }
+    if (!Array.isArray(day.places)) return;
 
     day.places.forEach((place) => {
       const latitude = Number(place.latitude);
@@ -842,86 +520,41 @@ function showPlacesOnMap(result) {
         return;
       }
 
-      const position = {
-        lat: latitude,
-        lng: longitude
-      };
+      const position = { lat: latitude, lng: longitude };
 
       const marker = new google.maps.Marker({
-        position: position,
+        position,
         map: googleMap,
         title: place.placeName || "여행 장소",
-        label: {
-          text: String(markerNumber),
-          color: "#ffffff",
-          fontSize: "12px",
-          fontWeight: "700"
-        }
+        label: { text: String(markerNumber), color: "#ffffff", fontSize: "12px", fontWeight: "700" }
       });
 
       const estimatedCost = Number(place.estimatedCost || 0);
 
       const infoWindow = new google.maps.InfoWindow({
         content: `
-          <div style="
-            min-width: 210px;
-            padding: 6px;
-            line-height: 1.6;
-            font-family: Arial, sans-serif;
-          ">
-            <strong style="font-size: 15px;">
-              📍 ${escapeMapText(place.placeName || "여행 장소")}
-            </strong>
-
+          <div style="min-width: 210px; padding: 6px; line-height: 1.6; font-family: Arial, sans-serif;">
+            <strong style="font-size: 15px;">📍 ${escapeText(place.placeName || "여행 장소")}</strong>
             <div style="margin-top: 6px;">
-              <b>Day ${escapeMapText(day.day || "")}</b>
-              ${place.time ? ` · ${escapeMapText(place.time)}` : ""}
+              <b>Day ${escapeText(day.day || "")}</b>${place.time ? ` · ${escapeText(place.time)}` : ""}
             </div>
-
-            ${
-              place.category
-                ? `<div>여행 유형: ${escapeMapText(place.category)}</div>`
-                : ""
-            }
-
-            ${
-              place.address
-                ? `<div>주소: ${escapeMapText(place.address)}</div>`
-                : ""
-            }
-
-            <div>
-              예상 비용: ${estimatedCost.toLocaleString()}원
-            </div>
-
-            ${
-              place.description
-                ? `<div style="margin-top: 5px;">
-                    ${escapeMapText(place.description)}
-                   </div>`
-                : ""
-            }
+            ${place.category ? `<div>여행 유형: ${escapeText(place.category)}</div>` : ""}
+            ${place.address ? `<div>주소: ${escapeText(place.address)}</div>` : ""}
+            <div>예상 비용: ${estimatedCost.toLocaleString()}원</div>
+            ${place.description ? `<div style="margin-top: 5px;">${escapeText(place.description)}</div>` : ""}
           </div>
         `
       });
 
       marker.addListener("click", function () {
-        if (activeInfoWindow) {
-          activeInfoWindow.close();
-        }
-
-        infoWindow.open({
-          anchor: marker,
-          map: googleMap
-        });
-
+        if (activeInfoWindow) activeInfoWindow.close();
+        infoWindow.open({ anchor: marker, map: googleMap });
         activeInfoWindow = infoWindow;
       });
 
       googleMarkers.push(marker);
       routePath.push(position);
       bounds.extend(position);
-
       markerNumber += 1;
     });
   });
@@ -942,26 +575,20 @@ function showPlacesOnMap(result) {
     googleMap.setZoom(15);
   } else if (routePath.length > 1) {
     googleMap.fitBounds(bounds);
+    google.maps.event.addListenerOnce(googleMap, "bounds_changed", function () {
+      if (googleMap.getZoom() > 15) googleMap.setZoom(15);
+    });
+  } else {
+    console.warn("지도에 표시할 수 있는 장소 좌표가 없습니다.");
+  }
+}
 
-    google.maps.event.addListenerOnce(
-      googleMap,
-      "bounds_changed",
-      function () {
-        if (googleMap.getZoom() > 15) {
-          googleMap.setZoom(15);
-        }
-      }
-    );
-	  } else {
-	    console.warn("지도에 표시할 수 있는 장소 좌표가 없습니다.");
-	  }
-	}
-
-	function escapeMapText(value) {
-	  return String(value ?? "")
-	    .replace(/&/g, "&amp;")
-	    .replace(/</g, "&lt;")
-	    .replace(/>/g, "&gt;")
-	    .replace(/"/g, "&quot;")
-	    .replace(/'/g, "&#039;");
-	}
+/* 사용자가 준 텍스트를 그대로 innerHTML에 넣으면 XSS 위험이 있어 이스케이프 처리 */
+function escapeText(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
